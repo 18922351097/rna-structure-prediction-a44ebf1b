@@ -41,23 +41,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('result-mfe').textContent = data.mfe;
                 console.log('Updated MFE:', document.getElementById('result-mfe').textContent);
 
-                try {
-                    // Display the SVG
-                    const structureViz = document.getElementById('structure-viz');
-                    structureViz.innerHTML = atob(data.svg);
-                    console.log('SVG content:', structureViz.innerHTML);
+                // Display the SVG
+                const structureViz = document.getElementById('structure-viz');
+                structureViz.innerHTML = atob(data.svg);
+                console.log('SVG content:', structureViz.innerHTML);
 
-                    // Make sure the SVG is visible and responsive
-                    const svg = structureViz.querySelector('svg');
-                    if (svg) {
-                        svg.setAttribute('width', '100%');
-                        svg.setAttribute('height', 'auto');
-                        console.log('SVG attributes set successfully');
-                    } else {
-                        console.error('SVG element not found in the structure-viz');
-                    }
-                } catch (error) {
-                    console.error('Error manipulating SVG:', error);
+                // Make sure the SVG is visible and responsive
+                const svg = structureViz.querySelector('svg');
+                if (svg) {
+                    svg.setAttribute('width', '100%');
+                    svg.setAttribute('height', 'auto');
+                    console.log('SVG attributes set successfully');
+                } else {
+                    console.error('SVG element not found in the structure-viz');
+                    // If SVG is not found, try to create it manually
+                    const parser = new DOMParser();
+                    const svgDoc = parser.parseFromString(atob(data.svg), 'image/svg+xml');
+                    const svgElement = svgDoc.documentElement;
+                    structureViz.appendChild(svgElement);
+                    svgElement.setAttribute('width', '100%');
+                    svgElement.setAttribute('height', 'auto');
+                    console.log('SVG created and appended manually');
                 }
 
                 // Show results

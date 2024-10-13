@@ -1,9 +1,8 @@
 import os
 from flask import Flask, render_template, request, jsonify
-from RNA import fold, PS_rna_plot
+import RNA
 import base64
 import tempfile
-import RNA
 
 print("ViennaRNA version:", RNA.__version__)
 
@@ -25,19 +24,20 @@ def predict():
             raise ValueError("Empty sequence received")
         
         # Predict secondary structure
-        (ss, mfe) = fold(sequence)
+        (ss, mfe) = RNA.fold(sequence)
         print(f"Predicted structure: {ss}")
         print(f"Minimum free energy: {mfe}")
         
         # Generate 2D plot
         with tempfile.NamedTemporaryFile(suffix='.svg', delete=False) as tmp:
-            PS_rna_plot(sequence, ss, tmp.name)
+            RNA.svg_rna_plot(sequence, ss, tmp.name)
             with open(tmp.name, 'rb') as f:
                 svg_data = f.read()
         os.unlink(tmp.name)
         
         svg_base64 = base64.b64encode(svg_data).decode('utf-8')
-        
+        print("SVG data length:", len(svg_base64))
+
         response_data = {
             'sequence': sequence,
             'structure': ss,
