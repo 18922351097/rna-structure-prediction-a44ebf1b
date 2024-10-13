@@ -81,4 +81,18 @@ document.addEventListener('DOMContentLoaded', function() {
             errorMessage.style.display = 'block';
         });
     });
+
+    // Add SVG download functionality
+    const downloadButton = document.getElementById('download-svg');
+    downloadButton.addEventListener('click', function() {
+        const svgData = new XMLSerializer().serializeToString(document.querySelector('#structure-viz svg'));
+        const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const downloadLink = document.createElement('a');
+        downloadLink.href = svgUrl;
+        downloadLink.download = 'rna_structure.svg';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    });
 });
