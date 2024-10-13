@@ -42,7 +42,8 @@ def predict():
             else:
                 print(f"Unexpected element type for key {key}: {type(elem)}")
         
-        for e1, e2 in bg.edges():
+        # Use bg.edges instead of bg.edges()
+        for e1, e2 in bg.edges:
             graph_data['links'].append({'source': e1, 'target': e2})
 
         print("Graph data:", graph_data)
