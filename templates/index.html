@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RNA Secondary Structure Prediction</title>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">RNA Secondary Structure Prediction</h1>
+        <form id="rna-form">
+            <div class="mb-3">
+                <label for="sequence" class="form-label">RNA Sequence:</label>
+                <input type="text" class="form-control" id="sequence" name="sequence" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Predict Structure</button>
+        </form>
+        <div id="results" class="mt-5" style="display: none;">
+            <h2>Results</h2>
+            <p><strong>Sequence:</strong> <span id="result-sequence"></span></p>
+            <p><strong>Structure:</strong> <span id="result-structure"></span></p>
+            <p><strong>Minimum Free Energy:</strong> <span id="result-mfe"></span> kcal/mol</p>
+            <div id="structure-viz"></div>
+        </div>
+    </div>
+    <script src="/static/js/rna_viz.js"></script>
+</body>
+</html>

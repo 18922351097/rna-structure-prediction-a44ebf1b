@@ -1,0 +1,5 @@
+/* Custom styles can be added here if needed */
+#structure-viz svg {
+    max-width: 100%;
+    height: auto;
+}
