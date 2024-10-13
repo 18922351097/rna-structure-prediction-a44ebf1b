@@ -29,35 +29,15 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             console.log('Data received:', data);
-            if (data && data.sequence && data.structure && data.mfe && data.svg) {
+            if (data && data.sequence && data.structure && data.mfe && data.graph_data) {
                 loading.style.display = 'none';
 
                 document.getElementById('result-sequence').textContent = data.sequence;
-                console.log('Updated sequence:', document.getElementById('result-sequence').textContent);
-
                 document.getElementById('result-structure').textContent = data.structure;
-                console.log('Updated structure:', document.getElementById('result-structure').textContent);
-
                 document.getElementById('result-mfe').textContent = data.mfe;
-                console.log('Updated MFE:', document.getElementById('result-mfe').textContent);
 
-                // Display the SVG
-                const structureViz = document.getElementById('structure-viz');
-                structureViz.innerHTML = atob(data.svg);
-                console.log('SVG content:', structureViz.innerHTML);
-
-                // Apply additional styles to SVG elements
-                applySVGStyles();
-
-                // Make sure the SVG is visible and responsive
-                const svg = structureViz.querySelector('svg');
-                if (svg) {
-                    svg.setAttribute('width', '100%');
-                    svg.setAttribute('height', 'auto');
-                    console.log('SVG attributes set successfully');
-                } else {
-                    console.error('SVG element not found in the structure-viz');
-                }
+                // Create force-directed graph
+                createForceGraph(data.graph_data);
 
                 // Show results
                 results.style.display = 'block';
@@ -76,28 +56,47 @@ document.addEventListener('DOMContentLoaded', function() {
             errorMessage.style.display = 'block';
         });
     });
-
-    // Add SVG download functionality
-    const downloadButton = document.getElementById('download-svg');
-    downloadButton.addEventListener('click', function() {
-        const svgData = new XMLSerializer().serializeToString(document.querySelector('#structure-viz svg'));
-        const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
-        const svgUrl = URL.createObjectURL(svgBlob);
-        const downloadLink = document.createElement('a');
-        downloadLink.href = svgUrl;
-        downloadLink.download = 'rna_structure.svg';
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-    });
 });
 
-function applySVGStyles() {
-    const svg = document.querySelector('#structure-viz svg');
-    if (svg) {
-        const nucleotides = svg.querySelectorAll('.nucleotide');
-        nucleotides.forEach((nucleotide, index) => {
-            nucleotide.style.fill = ['#007bff', '#28a745', '#ffc107', '#dc3545'][index % 4];
-        });
-    }
+function createForceGraph(data) {
+    const width = 600;
+    const height = 400;
+    
+    const svg = d3.select('#structure-viz').html('').append('svg')
+        .attr('width', width)
+        .attr('height', height);
+    
+    const simulation = d3.forceSimulation(data.nodes)
+        .force('link', d3.forceLink(data.links).id(d => d.id))
+        .force('charge', d3.forceManyBody())
+        .force('center', d3.forceCenter(width / 2, height / 2));
+    
+    const link = svg.append('g')
+        .selectAll('line')
+        .data(data.links)
+        .enter().append('line')
+        .attr('stroke', '#999')
+        .attr('stroke-opacity', 0.6);
+    
+    const node = svg.append('g')
+        .selectAll('circle')
+        .data(data.nodes)
+        .enter().append('circle')
+        .attr('r', 5)
+        .attr('fill', d => d.type === 's' ? '#ff0000' : '#00ff00');
+    
+    node.append('title')
+        .text(d => d.id);
+    
+    simulation.on('tick', () => {
+        link
+            .attr('x1', d => d.source.x)
+            .attr('y1', d => d.source.y)
+            .attr('x2', d => d.target.x)
+            .attr('y2', d => d.target.y);
+        
+        node
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y);
+    });
 }

@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, jsonify
 import RNA
 import base64
 import tempfile
+import forgi.graph.bulge_graph as fgb
 
 print("ViennaRNA version:", RNA.__version__)
 
@@ -28,21 +29,18 @@ def predict():
         print(f"Predicted structure: {ss}")
         print(f"Minimum free energy: {mfe}")
         
-        # Generate 2D plot
-        with tempfile.NamedTemporaryFile(suffix='.svg', delete=False) as tmp:
-            RNA.svg_rna_plot(sequence, ss, tmp.name)
-            with open(tmp.name, 'rb') as f:
-                svg_data = f.read()
-        os.unlink(tmp.name)
-        
-        svg_base64 = base64.b64encode(svg_data).decode('utf-8')
-        print("SVG data length:", len(svg_base64))
+        # Create forgi graph
+        bg = fgb.BulgeGraph.from_dotbracket(ss)
+        graph_data = {
+            'nodes': [{'id': elem.define, 'type': elem.nt_type} for elem in bg.defines.values()],
+            'links': [{'source': e1, 'target': e2} for e1, e2 in bg.edges()]
+        }
 
         response_data = {
             'sequence': sequence,
             'structure': ss,
             'mfe': mfe,
-            'svg': svg_base64
+            'graph_data': graph_data
         }
         print("Sending response:", response_data)
         return jsonify(response_data)
