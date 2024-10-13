@@ -22,10 +22,16 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => {
             console.log('Response received:', response);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             return response.json();
         })
         .then(data => {
             console.log('Data received:', data);
+            if (!data.sequence || !data.structure || !data.mfe || !data.svg) {
+                throw new Error('Incomplete data received from server');
+            }
             loading.style.display = 'none';
 
             document.getElementById('result-sequence').textContent = data.sequence;
@@ -55,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error:', error);
             loading.style.display = 'none';
-            errorMessage.textContent = 'An error occurred. Please try again.';
+            errorMessage.textContent = `An error occurred: ${error.message}. Please try again.`;
             errorMessage.style.display = 'block';
         });
     });

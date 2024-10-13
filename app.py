@@ -21,6 +21,9 @@ def predict():
         sequence = request.form['sequence']
         print(f"Received sequence: {sequence}")
         
+        if not sequence:
+            raise ValueError("Empty sequence received")
+        
         # Predict secondary structure
         (ss, mfe) = fold(sequence)
         print(f"Predicted structure: {ss}")
