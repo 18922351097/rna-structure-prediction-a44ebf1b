@@ -2,16 +2,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('rna-form');
     const results = document.getElementById('results');
 
+    console.log('DOM content loaded, form and results elements:', form, results);
+
     form.addEventListener('submit', function(e) {
         e.preventDefault();
+        console.log('Form submitted');
         const formData = new FormData(form);
+        console.log('Form data:', Object.fromEntries(formData));
 
         fetch('/predict', {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            console.log('Response received:', response);
+            return response.json();
+        })
         .then(data => {
+            console.log('Data received:', data);
             document.getElementById('result-sequence').textContent = data.sequence;
             document.getElementById('result-structure').textContent = data.structure;
             document.getElementById('result-mfe').textContent = data.mfe;
@@ -27,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Show results
             results.style.display = 'block';
+            console.log('Results displayed');
         })
         .catch(error => console.error('Error:', error));
     });
