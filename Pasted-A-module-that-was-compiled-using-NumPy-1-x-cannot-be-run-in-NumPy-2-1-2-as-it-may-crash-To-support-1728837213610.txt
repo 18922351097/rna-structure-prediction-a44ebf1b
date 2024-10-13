@@ -1,0 +1,42 @@
+A module that was compiled using NumPy 1.x cannot be run in
+NumPy 2.1.2 as it may crash. To support both 1.x and 2.x
+versions of NumPy, modules must be compiled with NumPy 2.0.
+Some module may need to rebuild instead e.g. with 'pybind11>=2.12'.
+
+If you are a user of the module, the easiest solution will be to
+downgrade to 'numpy<2' or try to upgrade the affected module.
+We expect that some modules will need time to support NumPy 2.
+
+Traceback (most recent call last):  File "/home/runner/workspace/main.py", line 1, in <module>
+    from app import app
+  File "/home/runner/workspace/app.py", line 6, in <module>
+    import forgi.graph.bulge_graph as fgb
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/forgi/__init__.py", line 30, in <module>
+    from forgi.utilities.commandline_utils import load_rna
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/forgi/utilities/commandline_utils.py", line 21, in <module>
+    import forgi.threedee.model.coarse_grain as ftmc
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/forgi/threedee/model/coarse_grain.py", line 53, in <module>
+    from ..utilities import graph_pdb as ftug
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/forgi/threedee/utilities/graph_pdb.py", line 45, in <module>
+    from .cytvec import get_broken_ml_deviation
+ViennaRNA version: 2.7.0
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.31.196.42:5000
+Press CTRL+C to quit
+172.31.196.42 - - [13/Oct/2024 16:32:32] "GET / HTTP/1.1" 200 -
+172.31.196.42 - - [13/Oct/2024 16:32:33] "GET /static/js/rna_viz.js HTTP/1.1" 304 -
+172.31.196.42 - - [13/Oct/2024 16:32:35] "GET / HTTP/1.1" 200 -
+172.31.196.42 - - [13/Oct/2024 16:32:35] "GET /static/js/rna_viz.js HTTP/1.1" 200 -
+172.31.196.42 - - [13/Oct/2024 16:32:50] "GET / HTTP/1.1" 200 -
+172.31.196.42 - - [13/Oct/2024 16:32:50] "GET /static/js/rna_viz.js HTTP/1.1" 304 -
+Received POST request to /predict
+Received sequence: GGGAAAACCC
+Predicted structure: (((....)))
+Minimum free energy: -2.0999999046325684
+Graph data: {'nodes': [{'id': 's0', 'type': 'stem'}, {'id': 'h0', 'type': 'loop'}], 'links': [{'source': 's', 'target': '0'}, {'source': 'h', 'target': '0'}]}
+Sending response: {'sequence': 'GGGAAAACCC', 'structure': '(((....)))', 'mfe': -2.0999999046325684, 'graph_data': {'nodes': [{'id': 's0', 'type': 'stem'}, {'id': 'h0', 'type': 'loop'}], 'links': [{'source': 's', 'target': '0'}, {'source': 'h', 'target': '0'}]}}
+172.31.196.42 - - [13/Oct/2024 16:32:55] "POST /predict HTTP/1.1" 200 -

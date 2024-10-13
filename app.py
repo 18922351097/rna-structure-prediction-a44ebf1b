@@ -39,12 +39,10 @@ def predict():
         for key, elem in bg.defines.items():
             if isinstance(elem, list):
                 graph_data['nodes'].append({'id': key, 'type': 'loop' if key.startswith('h') else 'stem'})
-            else:
-                print(f"Unexpected element type for key {key}: {type(elem)}")
         
-        # Use bg.edges instead of bg.edges()
         for e1, e2 in bg.edges:
-            graph_data['links'].append({'source': e1, 'target': e2})
+            if e1 in [node['id'] for node in graph_data['nodes']] and e2 in [node['id'] for node in graph_data['nodes']]:
+                graph_data['links'].append({'source': e1, 'target': e2})
 
         print("Graph data:", graph_data)
 
