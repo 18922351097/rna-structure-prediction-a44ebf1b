@@ -11,4 +11,6 @@ dependencies = [
     "viennarna>=2.7.0",
     "forgi>=2.2.3",
     "matplotlib>=3.9.2",
+    "numpy<2",
+    "networkx>=3.4.1",
 ]

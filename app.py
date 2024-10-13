@@ -2,13 +2,9 @@ import os
 from flask import Flask, render_template, request, jsonify
 import RNA
 import base64
-import tempfile
-import forgi.graph.bulge_graph as fgb
-import traceback
-import matplotlib.pyplot as plt
-import forgi.visual.mplotlib as fvm
-import forgi
 import io
+import matplotlib.pyplot as plt
+import networkx as nx
 
 print("ViennaRNA version:", RNA.__version__)
 
@@ -34,13 +30,12 @@ def predict():
         print(f"Predicted structure: {ss}")
         print(f"Minimum free energy: {mfe}")
         
-        # Create forgi graph
-        bg = fgb.BulgeGraph.from_dotbracket(ss, seq=sequence)
+        # Generate graph data
+        graph_data = generate_graph_data(ss)
         
         # Generate plot
         plt.figure(figsize=(10, 10))
-        fvm.plot_rna(bg, text_kwargs={"fontweight":"black"}, lighten=0.7,
-                     backbone_kwargs={"linewidth":3})
+        plot_rna_structure(sequence, ss)
         
         # Save plot to a BytesIO object
         img_io = io.BytesIO()
@@ -54,17 +49,36 @@ def predict():
             'sequence': sequence,
             'structure': ss,
             'mfe': mfe,
-            'plot': img_data
+            'plot': img_data,
+            'graph_data': graph_data
         }
         print("Sending response:", response_data)
         return jsonify(response_data)
     except Exception as e:
         print(f"Error in predict route: {str(e)}")
-        print(f"Error type: {type(e).__name__}")
-        print(f"Error args: {e.args}")
-        print("Traceback:")
-        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+def generate_graph_data(structure):
+    G = nx.Graph()
+    stack = []
+    for i, char in enumerate(structure):
+        if char == '(':
+            stack.append(i)
+        elif char == ')':
+            if stack:
+                start = stack.pop()
+                G.add_edge(start, i)
+    
+    pos = nx.spring_layout(G)
+    nodes = [{'id': str(n), 'x': pos[n][0], 'y': pos[n][1]} for n in G.nodes()]
+    links = [{'source': str(u), 'target': str(v)} for u, v in G.edges()]
+    
+    return {'nodes': nodes, 'links': links}
+
+def plot_rna_structure(sequence, structure):
+    plt.text(0.5, 0.5, structure, ha='center', va='center', fontsize=20)
+    plt.text(0.5, 0.4, sequence, ha='center', va='center', fontsize=16)
+    plt.axis('off')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
