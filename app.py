@@ -5,6 +5,10 @@ import base64
 import tempfile
 import forgi.graph.bulge_graph as fgb
 import traceback
+import matplotlib.pyplot as plt
+import forgi.visual.mplotlib as fvm
+import forgi
+import io
 
 print("ViennaRNA version:", RNA.__version__)
 
@@ -31,26 +35,26 @@ def predict():
         print(f"Minimum free energy: {mfe}")
         
         # Create forgi graph
-        bg = fgb.BulgeGraph.from_dotbracket(ss)
-        graph_data = {
-            'nodes': [],
-            'links': []
-        }
-        for key, elem in bg.defines.items():
-            if isinstance(elem, list):
-                graph_data['nodes'].append({'id': key, 'type': 'loop' if key.startswith('h') else 'stem'})
+        bg = fgb.BulgeGraph.from_dotbracket(ss, seq=sequence)
         
-        for e1, e2 in bg.edges:
-            if e1 in [node['id'] for node in graph_data['nodes']] and e2 in [node['id'] for node in graph_data['nodes']]:
-                graph_data['links'].append({'source': e1, 'target': e2})
-
-        print("Graph data:", graph_data)
-
+        # Generate plot
+        plt.figure(figsize=(10, 10))
+        fvm.plot_rna(bg, text_kwargs={"fontweight":"black"}, lighten=0.7,
+                     backbone_kwargs={"linewidth":3})
+        
+        # Save plot to a BytesIO object
+        img_io = io.BytesIO()
+        plt.savefig(img_io, format='png')
+        img_io.seek(0)
+        img_data = base64.b64encode(img_io.getvalue()).decode()
+        
+        plt.close()  # Close the plot to free up memory
+        
         response_data = {
             'sequence': sequence,
             'structure': ss,
             'mfe': mfe,
-            'graph_data': graph_data
+            'plot': img_data
         }
         print("Sending response:", response_data)
         return jsonify(response_data)
