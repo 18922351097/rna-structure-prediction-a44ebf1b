@@ -28,9 +28,9 @@ def predict():
         print(f"Predicted structure: {ss}")
         print(f"Minimum free energy: {mfe}")
         
-        # Generate 2D plot with color-coded nucleotides
+        # Generate 2D plot
         with tempfile.NamedTemporaryFile(suffix='.svg', delete=False) as tmp:
-            RNA.svg_rna_plot(sequence, ss, tmp.name, {'baseColoring': 'sequence'})
+            RNA.svg_rna_plot(sequence, ss, tmp.name)
             with open(tmp.name, 'rb') as f:
                 svg_data = f.read()
         os.unlink(tmp.name)
