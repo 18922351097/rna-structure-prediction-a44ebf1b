@@ -1,5 +1,25 @@
-/* Custom styles can be added here if needed */
+/* Custom styles for RNA structure visualization */
 #structure-viz svg {
     max-width: 100%;
     height: auto;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.backbone {
+    stroke: #6c757d;
+    stroke-width: 2;
+}
+
+.basepairs {
+    stroke: #dc3545;
+    stroke-width: 2;
+}
+
+.nucleotide {
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    font-weight: bold;
 }

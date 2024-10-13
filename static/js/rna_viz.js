@@ -46,6 +46,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 structureViz.innerHTML = atob(data.svg);
                 console.log('SVG content:', structureViz.innerHTML);
 
+                // Apply additional styles to SVG elements
+                applySVGStyles();
+
                 // Make sure the SVG is visible and responsive
                 const svg = structureViz.querySelector('svg');
                 if (svg) {
@@ -54,14 +57,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.log('SVG attributes set successfully');
                 } else {
                     console.error('SVG element not found in the structure-viz');
-                    // If SVG is not found, try to create it manually
-                    const parser = new DOMParser();
-                    const svgDoc = parser.parseFromString(atob(data.svg), 'image/svg+xml');
-                    const svgElement = svgDoc.documentElement;
-                    structureViz.appendChild(svgElement);
-                    svgElement.setAttribute('width', '100%');
-                    svgElement.setAttribute('height', 'auto');
-                    console.log('SVG created and appended manually');
                 }
 
                 // Show results
@@ -96,3 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.removeChild(downloadLink);
     });
 });
+
+function applySVGStyles() {
+    const svg = document.querySelector('#structure-viz svg');
+    if (svg) {
+        const nucleotides = svg.querySelectorAll('.nucleotide');
+        nucleotides.forEach((nucleotide, index) => {
+            nucleotide.style.fill = ['#007bff', '#28a745', '#ffc107', '#dc3545'][index % 4];
+        });
+    }
+}

@@ -28,9 +28,9 @@ def predict():
         print(f"Predicted structure: {ss}")
         print(f"Minimum free energy: {mfe}")
         
-        # Generate 2D plot
+        # Generate 2D plot with smooth backbone
         with tempfile.NamedTemporaryFile(suffix='.svg', delete=False) as tmp:
-            RNA.svg_rna_plot(sequence, ss, tmp.name)
+            RNA.svg_rna_plot(sequence, ss, tmp.name, {'opt': {'backbone': {'smooth': True}}})
             with open(tmp.name, 'rb') as f:
                 svg_data = f.read()
         os.unlink(tmp.name)
