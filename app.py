@@ -77,7 +77,7 @@ def generate_graph_data(bg):
         elif e.startswith('t'):
             nodes.append({'id': e, 'type': 'threeprime', 'length': len(define)})
     
-    for e1, e2 in bg.edges():
+    for e1, e2 in bg.edges:  # Changed from bg.edges() to bg.edges
         links.append({'source': e1, 'target': e2})
     
     return {'nodes': nodes, 'links': links}
