@@ -1,0 +1,117 @@
+Let's go through the key parts and make necessary adjustments.
+
+First, let's ensure we have the correct imports:
+import os
+from flask import Flask, render_template, request, jsonify
+import RNA
+import base64
+import io
+import matplotlib.pyplot as plt
+import forgi.graph.bulge_graph as fgb
+These imports look correct. You've included the necessary forgi module.
+
+Now, let's focus on the predict() function where the RNA structure prediction and visualization happen:
+def predict():
+    try:
+        print("Received POST request to /predict")
+        sequence = request.form['sequence']
+        print(f"Received sequence: {sequence}")
+        
+        if not sequence:
+            raise ValueError("Empty sequence received")
+        
+        # Predict secondary structure
+        (ss, mfe) = RNA.fold(sequence)
+        print(f"Predicted structure: {ss}")
+        print(f"Minimum free energy: {mfe}")
+        
+        # Generate graph data using forgi
+        bg = fgb.BulgeGraph.from_dotbracket(ss, seq=sequence)
+        graph_data = generate_graph_data(bg)
+        
+        # Generate plot
+        plt.figure(figsize=(10, 10))
+        plot_rna_structure(sequence, ss)
+        
+        # Save plot to a BytesIO object
+        img_io = io.BytesIO()
+        plt.savefig(img_io, format='png')
+        img_io.seek(0)
+        img_data = base64.b64encode(img_io.getvalue()).decode()
+        
+        plt.close()  # Close the plot to free up memory
+        
+        response_data = {
+            'sequence': sequence,
+            'structure': ss,
+            'mfe': mfe,
+            'plot': img_data,
+            'graph_data': graph_data
+        }
+        print("Sending response:", response_data)
+        return jsonify(response_data)
+    except Exception as e:
+        print(f"Error in predict route: {str(e)}")
+        print(f"Error type: {type(e)}")
+        print(f"Error args: {e.args}")
+        import traceback
+        print("Traceback:")
+        print(traceback.format_exc())
+This implementation looks good. You're using forgi to generate the graph data, which is correct. The generate_graph_data function is crucial here.
+
+Let's review the generate_graph_data() function:
+def generate_graph_data(bg):
+    nodes = []
+    links = []
+    try:
+        for e in bg.defines:
+            element_type = bg.element_type(e)
+            define = bg.defines[e]
+            node = {'id': e, 'type': element_type, 'length': len(define)}
+            if element_type == 'stem':
+                node['length'] = len(define) // 2
+            nodes.append(node)
+        
+        for e1, e2 in bg.edges():
+            links.append({'source': e1, 'target': e2})
+        
+        print("Generated graph data:", {'nodes': nodes, 'links': links})
+    except Exception as e:
+        print(f"Error in generate_graph_data: {str(e)}")
+        print(f"Error type: {type(e)}")
+        print(f"Error args: {e.args}")
+        import traceback
+        print("Traceback:")
+        print(traceback.format_exc())
+    
+    return {'nodes': nodes, 'links': links}
+This function looks correct and should work well with forgi. It's creating nodes and links based on the BulgeGraph object from forgi.
+
+The plot_rna_structure() function:
+def plot_rna_structure(sequence, structure):
+    plt.text(0.5, 0.5, structure, ha='center', va='center', fontsize=20)
+    plt.text(0.5, 0.4, sequence, ha='center', va='center', fontsize=16)
+    plt.axis('off')
+This function is quite simple and doesn't use forgi for visualization. If you want to use forgi for plotting, you could modify this function to use forgi's plotting capabilities. However, this simple representation might be sufficient for your needs.
+
+Based on this review, your implementation of forgi seems correct. The main use of forgi is in generating the graph data, which you're doing properly. Here are a few suggestions for improvement:
+
+Error Handling: Your error handling is good, but you might want to return a proper error response to the client:
+except Exception as e:
+    print(f"Error in predict route: {str(e)}")
+    print(traceback.format_exc())
+    return jsonify({'error': str(e)}), 500
+Forgi Visualization: If you want to use forgi for more advanced visualization, you could replace the plot_rna_structure function with something like this:
+import forgi.visual.mplotlib as fvm
+def plot_rna_structure(bg):
+    fvm.plot_rna(bg, text_kwargs={"fontweight":"bold"})
+    plt.axis('off')
+Then in your predict function, you would use:
+
+plot_rna_structure(bg)
+instead of:
+
+plot_rna_structure(sequence, ss)
+These changes would give you a more detailed RNA structure visualization using forgi.
+
+Overall, your implementation looks good, and the forgi integration seems correct. The main area where you're using forgi (generating graph data) is implemented properly. If you're still encountering issues, they might be related to how the frontend is handling the data, or there might be specific sequences causing problems. Let me know if you need any further clarification or have any other questions!

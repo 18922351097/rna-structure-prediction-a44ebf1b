@@ -4,8 +4,9 @@ import RNA
 import base64
 import io
 import matplotlib.pyplot as plt
-import networkx as nx
 import forgi.graph.bulge_graph as fgb
+import forgi.visual.mplotlib as fvm
+import traceback
 
 print("ViennaRNA version:", RNA.__version__)
 
@@ -32,12 +33,12 @@ def predict():
         print(f"Minimum free energy: {mfe}")
         
         # Generate graph data using forgi
-        bg = fgb.BulgeGraph.from_dotbracket(ss)
+        bg = fgb.BulgeGraph.from_dotbracket(ss, seq=sequence)
         graph_data = generate_graph_data(bg)
         
         # Generate plot
         plt.figure(figsize=(10, 10))
-        plot_rna_structure(sequence, ss)
+        plot_rna_structure(bg)
         
         # Save plot to a BytesIO object
         img_io = io.BytesIO()
@@ -58,33 +59,33 @@ def predict():
         return jsonify(response_data)
     except Exception as e:
         print(f"Error in predict route: {str(e)}")
+        print(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 def generate_graph_data(bg):
     nodes = []
     links = []
-    for e, define in bg.defines.items():
-        if e.startswith('s'):
-            nodes.append({'id': e, 'type': 'stem', 'length': len(define) // 2})
-        elif e.startswith('h'):
-            nodes.append({'id': e, 'type': 'hairpin', 'length': len(define)})
-        elif e.startswith('i'):
-            nodes.append({'id': e, 'type': 'interior_loop', 'length': len(define)})
-        elif e.startswith('m'):
-            nodes.append({'id': e, 'type': 'multiloop', 'length': len(define)})
-        elif e.startswith('f'):
-            nodes.append({'id': e, 'type': 'fiveprime', 'length': len(define)})
-        elif e.startswith('t'):
-            nodes.append({'id': e, 'type': 'threeprime', 'length': len(define)})
-    
-    for e1, e2 in bg.edges:  # Changed from bg.edges() to bg.edges
-        links.append({'source': e1, 'target': e2})
+    try:
+        for e in bg.defines:
+            element_type = bg.element_type(e)
+            define = bg.defines[e]
+            node = {'id': e, 'type': element_type, 'length': len(define)}
+            if element_type == 'stem':
+                node['length'] = len(define) // 2
+            nodes.append(node)
+        
+        for e1, e2 in bg.edges():
+            links.append({'source': e1, 'target': e2})
+        
+        print("Generated graph data:", {'nodes': nodes, 'links': links})
+    except Exception as e:
+        print(f"Error in generate_graph_data: {str(e)}")
+        print(traceback.format_exc())
     
     return {'nodes': nodes, 'links': links}
 
-def plot_rna_structure(sequence, structure):
-    plt.text(0.5, 0.5, structure, ha='center', va='center', fontsize=20)
-    plt.text(0.5, 0.4, sequence, ha='center', va='center', fontsize=16)
+def plot_rna_structure(bg):
+    fvm.plot_rna(bg, text_kwargs={"fontweight":"bold"})
     plt.axis('off')
 
 if __name__ == '__main__':
