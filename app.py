@@ -5,7 +5,9 @@ import RNA
 import base64
 import io
 import matplotlib.pyplot as plt
+import forgi
 import forgi.graph.bulge_graph as fgb
+import forgi.visual.mplotlib as fvm
 import traceback
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -36,13 +38,13 @@ def predict():
         logging.debug(f"Predicted structure: {ss}")
         logging.debug(f"Minimum free energy: {mfe}")
         
-        # Generate graph data using forgi
+        # Generate graph data
         bg = fgb.BulgeGraph.from_dotbracket(ss, seq=sequence)
         graph_data = generate_graph_data(bg)
         
         # Generate plot
         plt.figure(figsize=(10, 10))
-        plot_rna_structure(sequence, ss)
+        plot_rna_structure(bg, sequence)
         
         # Save plot to a BytesIO object
         img_io = io.BytesIO()
@@ -70,18 +72,29 @@ def generate_graph_data(bg):
     nodes = []
     links = []
     try:
-        for e in bg.defines.keys():
-            nodes.append({'id': e, 'type': bg.element_to_type(e)})
-        links = [{'source': e1, 'target': e2} for e1, e2 in bg.edges()]
+        for e in bg.defines:
+            element_type = bg.get_element_type(e)  # Changed from get_node_type to get_element_type
+            define = bg.defines[e]
+            node = {'id': e, 'type': element_type, 'length': len(define)}
+            if element_type == 'stem':
+                node['length'] = len(define) // 2
+            nodes.append(node)
+        
+        for e1, e2 in bg.edges():
+            links.append({'source': e1, 'target': e2})
+        
         logging.debug("Generated graph data: %s", {'nodes': nodes, 'links': links})
     except Exception as e:
         logging.error(f"Error in generate_graph_data: {str(e)}")
         logging.error(traceback.format_exc())
+    
     return {'nodes': nodes, 'links': links}
 
-def plot_rna_structure(sequence, structure):
-    plt.text(0.5, 0.5, structure, ha='center', va='center', fontsize=20)
-    plt.text(0.5, 0.4, sequence, ha='center', va='center', fontsize=16)
+def plot_rna_structure(bg, sequence):
+    if len(sequence) <= 500:
+        fvm.plot_rna(bg, text_kwargs={"fontweight":"bold"})
+    else:
+        fvm.plot_rna(bg, text_kwargs={"fontweight":"bold"}, show_letters=False)
     plt.axis('off')
 
 if __name__ == '__main__':
