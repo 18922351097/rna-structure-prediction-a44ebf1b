@@ -1,0 +1,49 @@
+Certainly! Let's take a look at the main.py file and check for any issues that might be causing the Flask app to stop unexpectedly. Here's the content of main.py:
+
+from app import app
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+This main.py file looks correct and shouldn't be the cause of the app stopping unexpectedly. It's a standard way to run a Flask app. However, there are a few things we can check and modify to help diagnose and potentially fix the issue:
+
+Error Handling: Add a try-except block to catch and log any exceptions that might be causing the app to stop:
+from app import app
+import traceback
+if __name__ == "__main__":
+    try:
+        app.run(host="0.0.0.0", port=5000)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        print(traceback.format_exc())
+Debugging Mode: Enable Flask's debug mode to get more detailed error messages:
+from app import app
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+Logging: Add logging to your app to get more information about what's happening:
+from app import app
+import logging
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    app.logger.setLevel(logging.DEBUG)
+    app.run(host="0.0.0.0", port=5000)
+Check for Port Conflicts: Ensure that port 5000 is not being used by another process. You can try a different port:
+from app import app
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
+Verify app.py: Make sure that your app.py file is correctly set up and doesn't have any issues that might cause the app to crash.
+To get more information about why the app might be stopping, you should check the following:
+
+Console Output: Look for any error messages or stack traces printed to the console when the app stops.
+
+System Logs: Check your system logs for any relevant error messages.
+
+Application Logs: If you've set up logging in your Flask app, check those log files.
+
+Resource Usage: Monitor CPU and memory usage to see if the app is running out of resources.
+
+Dependencies: Ensure all required dependencies are installed and up-to-date.
+
+If you're running this on Replit, you can check the Console tab for any error messages or logs. Also, make sure that your .replit file is correctly configured to run the main.py file.
+
+Given the information provided in the app.py file, it seems that your app is using several libraries including Flask, RNA, matplotlib, and forgi. Make sure all these dependencies are correctly installed and compatible with each other.
+
+If you're still having issues, please provide any error messages or logs you're seeing when the app stops. This will help in further diagnosing the problem.

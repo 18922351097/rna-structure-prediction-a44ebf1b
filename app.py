@@ -1,36 +1,40 @@
 import os
+import logging
 from flask import Flask, render_template, request, jsonify
 import RNA
 import base64
 import io
 import matplotlib.pyplot as plt
 import forgi.graph.bulge_graph as fgb
-import forgi.visual.mplotlib as fvm
 import traceback
 
-print("ViennaRNA version:", RNA.__version__)
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
+logging.debug("Starting application...")
+logging.debug("ViennaRNA version: %s", RNA.__version__)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or "a secret key"
 
 @app.route('/')
 def index():
+    logging.debug("Rendering index page")
     return render_template('index.html')
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        print("Received POST request to /predict")
+        logging.debug('Received POST request to /predict')
         sequence = request.form['sequence']
-        print(f"Received sequence: {sequence}")
+        logging.debug(f"Received sequence: {sequence}")
         
         if not sequence:
             raise ValueError("Empty sequence received")
         
         # Predict secondary structure
         (ss, mfe) = RNA.fold(sequence)
-        print(f"Predicted structure: {ss}")
-        print(f"Minimum free energy: {mfe}")
+        logging.debug(f"Predicted structure: {ss}")
+        logging.debug(f"Minimum free energy: {mfe}")
         
         # Generate graph data using forgi
         bg = fgb.BulgeGraph.from_dotbracket(ss, seq=sequence)
@@ -38,7 +42,7 @@ def predict():
         
         # Generate plot
         plt.figure(figsize=(10, 10))
-        plot_rna_structure(bg)
+        plot_rna_structure(sequence, ss)
         
         # Save plot to a BytesIO object
         img_io = io.BytesIO()
@@ -55,11 +59,11 @@ def predict():
             'plot': img_data,
             'graph_data': graph_data
         }
-        print("Sending response:", response_data)
+        logging.debug("Sending response: %s", response_data)
         return jsonify(response_data)
     except Exception as e:
-        print(f"Error in predict route: {str(e)}")
-        print(traceback.format_exc())
+        logging.error(f"Error in predict route: {str(e)}")
+        logging.error(traceback.format_exc())
         return jsonify({'error': str(e)}), 500
 
 def generate_graph_data(bg):
@@ -67,28 +71,23 @@ def generate_graph_data(bg):
     links = []
     try:
         for e in bg.defines.keys():
-            print(f"Processing element: {e}")
-            element_type = bg.element_to_type(e)  # Use element_to_type instead of get_elem_type
-            print(f"Element type: {element_type}")
-            define = bg.defines[e]
-            node = {'id': e, 'type': element_type, 'length': len(define)}
-            if element_type == 's':  # 's' for stem
-                node['length'] = len(define) // 2
-            nodes.append(node)
-        
+            nodes.append({'id': e, 'type': bg.element_to_type(e)})
         links = [{'source': e1, 'target': e2} for e1, e2 in bg.edges()]
-        
-        print("Generated graph data:", {'nodes': nodes, 'links': links})
+        logging.debug("Generated graph data: %s", {'nodes': nodes, 'links': links})
     except Exception as e:
-        print(f"Error in generate_graph_data: {str(e)}")
-        print(traceback.format_exc())
-        print("Available methods:", dir(bg))
-    
+        logging.error(f"Error in generate_graph_data: {str(e)}")
+        logging.error(traceback.format_exc())
     return {'nodes': nodes, 'links': links}
 
-def plot_rna_structure(bg):
-    fvm.plot_rna(bg, text_kwargs={"fontweight":"bold"})
+def plot_rna_structure(sequence, structure):
+    plt.text(0.5, 0.5, structure, ha='center', va='center', fontsize=20)
+    plt.text(0.5, 0.4, sequence, ha='center', va='center', fontsize=16)
     plt.axis('off')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    try:
+        logging.info("Starting Flask application...")
+        app.run(host='0.0.0.0', port=5000, debug=True)
+    except Exception as e:
+        logging.error(f"Error starting Flask application: {str(e)}")
+        logging.error(traceback.format_exc())
