@@ -66,21 +66,23 @@ def generate_graph_data(bg):
     nodes = []
     links = []
     try:
-        for e in bg.defines:
-            element_type = bg.element_type(e)
+        for e in bg.defines.keys():
+            print(f"Processing element: {e}")
+            element_type = bg.element_to_type(e)  # Use element_to_type instead of get_elem_type
+            print(f"Element type: {element_type}")
             define = bg.defines[e]
             node = {'id': e, 'type': element_type, 'length': len(define)}
-            if element_type == 'stem':
+            if element_type == 's':  # 's' for stem
                 node['length'] = len(define) // 2
             nodes.append(node)
         
-        for e1, e2 in bg.edges():
-            links.append({'source': e1, 'target': e2})
+        links = [{'source': e1, 'target': e2} for e1, e2 in bg.edges()]
         
         print("Generated graph data:", {'nodes': nodes, 'links': links})
     except Exception as e:
         print(f"Error in generate_graph_data: {str(e)}")
         print(traceback.format_exc())
+        print("Available methods:", dir(bg))
     
     return {'nodes': nodes, 'links': links}
 
