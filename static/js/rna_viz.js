@@ -79,7 +79,7 @@ function createForceGraph(graphData) {
 
     const simulation = d3.forceSimulation(graphData.nodes)
         .force("link", d3.forceLink(graphData.links).id(d => d.id))
-        .force("charge", d3.forceManyBody().strength(-50))
+        .force("charge", d3.forceManyBody().strength(-100))
         .force("center", d3.forceCenter(width / 2, height / 2));
 
     const link = svg.append("g")
@@ -94,11 +94,11 @@ function createForceGraph(graphData) {
         .selectAll("circle")
         .data(graphData.nodes)
         .enter().append("circle")
-        .attr("r", 5)
-        .attr("fill", "#69b3a2");
+        .attr("r", d => getNodeRadius(d))
+        .attr("fill", d => getNodeColor(d));
 
     node.append("title")
-        .text(d => d.id);
+        .text(d => `${d.id} (${d.type}, length: ${d.length})`);
 
     simulation.on("tick", () => {
         link
@@ -111,4 +111,55 @@ function createForceGraph(graphData) {
             .attr("cx", d => d.x)
             .attr("cy", d => d.y);
     });
+
+    // Add legend
+    const legend = svg.append("g")
+        .attr("class", "legend")
+        .attr("transform", "translate(10, 10)");
+
+    const legendData = [
+        {type: "stem", color: "#1f77b4"},
+        {type: "hairpin", color: "#2ca02c"},
+        {type: "interior_loop", color: "#d62728"},
+        {type: "multiloop", color: "#9467bd"},
+        {type: "fiveprime", color: "#8c564b"},
+        {type: "threeprime", color: "#e377c2"}
+    ];
+
+    legend.selectAll("rect")
+        .data(legendData)
+        .enter()
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", (d, i) => i * 20)
+        .attr("width", 10)
+        .attr("height", 10)
+        .attr("fill", d => d.color);
+
+    legend.selectAll("text")
+        .data(legendData)
+        .enter()
+        .append("text")
+        .attr("x", 15)
+        .attr("y", (d, i) => i * 20 + 9)
+        .text(d => d.type)
+        .attr("font-size", "10px")
+        .attr("fill", "white");
+}
+
+function getNodeRadius(node) {
+    const baseRadius = 5;
+    return baseRadius + node.length / 2;
+}
+
+function getNodeColor(node) {
+    switch (node.type) {
+        case "stem": return "#1f77b4";
+        case "hairpin": return "#2ca02c";
+        case "interior_loop": return "#d62728";
+        case "multiloop": return "#9467bd";
+        case "fiveprime": return "#8c564b";
+        case "threeprime": return "#e377c2";
+        default: return "#7f7f7f";
+    }
 }

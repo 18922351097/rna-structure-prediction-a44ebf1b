@@ -5,6 +5,7 @@ import base64
 import io
 import matplotlib.pyplot as plt
 import networkx as nx
+import forgi.graph.bulge_graph as fgb
 
 print("ViennaRNA version:", RNA.__version__)
 
@@ -30,8 +31,9 @@ def predict():
         print(f"Predicted structure: {ss}")
         print(f"Minimum free energy: {mfe}")
         
-        # Generate graph data
-        graph_data = generate_graph_data(ss)
+        # Generate graph data using forgi
+        bg = fgb.BulgeGraph.from_dotbracket(ss)
+        graph_data = generate_graph_data(bg)
         
         # Generate plot
         plt.figure(figsize=(10, 10))
@@ -58,20 +60,25 @@ def predict():
         print(f"Error in predict route: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-def generate_graph_data(structure):
-    G = nx.Graph()
-    stack = []
-    for i, char in enumerate(structure):
-        if char == '(':
-            stack.append(i)
-        elif char == ')':
-            if stack:
-                start = stack.pop()
-                G.add_edge(start, i)
+def generate_graph_data(bg):
+    nodes = []
+    links = []
+    for e, define in bg.defines.items():
+        if e.startswith('s'):
+            nodes.append({'id': e, 'type': 'stem', 'length': len(define) // 2})
+        elif e.startswith('h'):
+            nodes.append({'id': e, 'type': 'hairpin', 'length': len(define)})
+        elif e.startswith('i'):
+            nodes.append({'id': e, 'type': 'interior_loop', 'length': len(define)})
+        elif e.startswith('m'):
+            nodes.append({'id': e, 'type': 'multiloop', 'length': len(define)})
+        elif e.startswith('f'):
+            nodes.append({'id': e, 'type': 'fiveprime', 'length': len(define)})
+        elif e.startswith('t'):
+            nodes.append({'id': e, 'type': 'threeprime', 'length': len(define)})
     
-    pos = nx.spring_layout(G)
-    nodes = [{'id': str(n), 'x': pos[n][0], 'y': pos[n][1]} for n in G.nodes()]
-    links = [{'source': str(u), 'target': str(v)} for u, v in G.edges()]
+    for e1, e2 in bg.edges():
+        links.append({'source': e1, 'target': e2})
     
     return {'nodes': nodes, 'links': links}
 
